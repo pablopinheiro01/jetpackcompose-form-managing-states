@@ -15,36 +15,57 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import br.com.alura.aluvery.sampledata.sampleSections
+import br.com.alura.aluvery.dao.ProductDao
+import br.com.alura.aluvery.sampledata.sampleCandies
+import br.com.alura.aluvery.sampledata.sampleDrinks
 import br.com.alura.aluvery.ui.screens.HomeScreen
 import br.com.alura.aluvery.ui.theme.AluveryTheme
 
 class MainActivity : ComponentActivity() {
+
+    private val dao = ProductDao()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            App(onFabClick = {
-                startActivity(Intent(this, ProductFormActivity::class.java))
-            })
+            App(
+                onFabClick = {
+                    startActivity(
+                        Intent(
+                            this,
+                            ProductFormActivity::class.java
+                        )
+                    )
+                },
+            ) {
+                val sections = mapOf(
+                    "Todos produtos" to dao.products(),
+                    "Promocoes" to sampleDrinks + sampleCandies,
+                    "Doces" to sampleCandies,
+                    "Bebidas" to sampleDrinks
+                )
+                HomeScreen(sections = sections)
+            }
         }
     }
 }
 
 @Composable
-fun App(onFabClick: () -> Unit = {}) {
+fun App(
+    onFabClick: () -> Unit = {},
+    content: @Composable () -> Unit = {},
+) {
     AluveryTheme {
         Surface {
             Scaffold(
                 floatingActionButton = {
                     FloatingActionButton(onClick = { onFabClick() }) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null )
+                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
                     }
                 }
             ) { paddingValues ->
                 Box(modifier = Modifier.padding(paddingValues))
-                HomeScreen(
-                    sampleSections
-                )
+                content()
             }
         }
     }
