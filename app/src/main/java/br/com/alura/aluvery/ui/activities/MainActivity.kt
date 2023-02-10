@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import br.com.alura.aluvery.dao.ProductDao
 import br.com.alura.aluvery.sampledata.sampleCandies
 import br.com.alura.aluvery.sampledata.sampleDrinks
+import br.com.alura.aluvery.sampledata.sampleSections
 import br.com.alura.aluvery.ui.screens.HomeScreen
 import br.com.alura.aluvery.ui.theme.AluveryTheme
 
@@ -74,5 +75,7 @@ fun App(
 @Preview
 @Composable
 fun AppPreview() {
-    App()
+    App(){
+        HomeScreen(sections = sampleSections)
+    }
 }
