@@ -12,13 +12,14 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import br.com.alura.aluvery.dao.ProductDao
+import br.com.alura.aluvery.model.Product
 import br.com.alura.aluvery.sampledata.sampleCandies
 import br.com.alura.aluvery.sampledata.sampleDrinks
+import br.com.alura.aluvery.sampledata.sampleProducts
 import br.com.alura.aluvery.sampledata.sampleSections
 import br.com.alura.aluvery.ui.screens.HomeScreen
 import br.com.alura.aluvery.ui.screens.HomeScreenUiState
@@ -41,6 +42,7 @@ class MainActivity : ComponentActivity() {
                     )
                 },
             ) {
+
                 val products = dao.products()
                 val sections = mapOf(
                     "Todos produtos" to products,
@@ -49,10 +51,40 @@ class MainActivity : ComponentActivity() {
                     "Bebidas" to sampleDrinks
                 )
 
-                val state = remember(sections) {
+                var text by remember{
+                    mutableStateOf("")
+                }
+
+                //logica de verificacao dos dados buscados
+                fun containsInNameOrDescription() = { product: Product ->
+                    product.name.contains(
+                        text,
+                        ignoreCase = true,
+                    ) ||
+                            product.description?.contains(
+                                text,
+                                ignoreCase = true,
+                            ) ?: false
+                }
+
+                val searchedProducts = remember(text,products){
+                    if (text.isNotBlank()) {
+                        //feito o merge dos filtros realizados nos dados
+                        sampleProducts.filter(containsInNameOrDescription()) + products.filter(
+                            containsInNameOrDescription()
+                        )
+                    } else emptyList()
+                }
+
+                //passagem via parametro para reagir a mudança realizada
+                val state = remember(sections,text) {//state vai reagir a mudanças das variaveis sections e text
                     HomeScreenUiState(
                         sections = sections,
-                        products = products,
+                        searchedProducts = searchedProducts,
+                        searchText = text,
+                        onSearchChange = {
+                                text = it
+                        }
                     )
                 }
                 HomeScreen(state = state)
