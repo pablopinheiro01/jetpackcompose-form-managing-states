@@ -60,8 +60,10 @@ class ProductFormScreenUiState(
     val onTextChanged: (String) -> Unit = {},
     val onPriceChanged: (String) -> Unit = {},
     val onDescriptionChanged: (String) -> Unit = {},
+    val onShowPreview: Boolean = url.isNotBlank()
 )
 
+//This composable is Stateful where I trate all states and changes
 @Composable
 fun ProductFormScreen(
     dao: ProductDao,
@@ -132,7 +134,7 @@ fun ProductFormScreen(
 
 }
 
-
+//This composable is Stateless
 @Composable
 fun ProductFormScreen(
     modifier: Modifier = Modifier,
@@ -160,7 +162,7 @@ fun ProductFormScreen(
             fontSize = 28.sp,
         )
 
-        if (url.isNotBlank()) {
+        if (state.onShowPreview) {
             AsyncImage(
                 model = url,
                 contentDescription = null,
@@ -252,6 +254,23 @@ fun ProductFormScreenPreview() {
     AluveryTheme {
         Surface {
             ProductFormScreen()
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ProductFormScreenFilledPreview() {
+    AluveryTheme {
+        Surface {
+            ProductFormScreen(
+                state = ProductFormScreenUiState(
+                    url = "url teste",
+                    name = "nome teste",
+                    price = "123",
+                    description = "descrição teste"
+                )
+            )
         }
     }
 }
