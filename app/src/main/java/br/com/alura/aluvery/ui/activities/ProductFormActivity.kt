@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -25,7 +26,9 @@ import br.com.alura.aluvery.R
 import br.com.alura.aluvery.model.Product
 import br.com.alura.aluvery.ui.theme.AluveryTheme
 import coil.compose.AsyncImage
+import java.lang.IllegalArgumentException
 import java.math.BigDecimal
+import java.text.DecimalFormat
 
 class ProductFormActivity : ComponentActivity() {
 
@@ -101,7 +104,8 @@ fun ProductFormScreen(modifier: Modifier = Modifier) {
         },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Next
+                imeAction = ImeAction.Next,
+                capitalization = KeyboardCapitalization.Words
             )
         )
 
@@ -109,14 +113,26 @@ fun ProductFormScreen(modifier: Modifier = Modifier) {
             mutableStateOf("")
         }
 
-        TextField(value = price, onValueChange = {
-            price = it
-        }, modifier.fillMaxWidth(), label = {
-            Text(text = "Preço")
-        }, keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Decimal,
-            imeAction = ImeAction.Next
-        )
+        val formatter = remember {
+            DecimalFormat("#.##")
+        }
+
+        TextField(
+            value = price,
+            onValueChange = {
+                try {
+                    price = formatter.format(BigDecimal(it))
+                } catch (e: IllegalArgumentException) {
+                    if (it.isEmpty()) {
+                        price = it
+                    }
+                }
+            }, modifier.fillMaxWidth(), label = {
+                Text(text = "Preço")
+            }, keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Decimal,
+                imeAction = ImeAction.Next
+            )
         )
 
 
@@ -137,6 +153,7 @@ fun ProductFormScreen(modifier: Modifier = Modifier) {
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
+                capitalization = KeyboardCapitalization.Sentences
             )
         )
 
@@ -159,8 +176,8 @@ fun ProductFormScreen(modifier: Modifier = Modifier) {
         }
         Spacer(modifier)
     }
-
 }
+
 
 @Preview
 @Composable
