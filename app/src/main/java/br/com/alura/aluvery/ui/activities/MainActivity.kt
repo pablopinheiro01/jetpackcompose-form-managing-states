@@ -42,52 +42,8 @@ class MainActivity : ComponentActivity() {
                     )
                 },
             ) {
-
                 val products = dao.products()
-                val sections = mapOf(
-                    "Todos produtos" to products,
-                    "Promocoes" to sampleDrinks + sampleCandies,
-                    "Doces" to sampleCandies,
-                    "Bebidas" to sampleDrinks
-                )
-
-                var text by remember{
-                    mutableStateOf("")
-                }
-
-                //logica de verificacao dos dados buscados
-                fun containsInNameOrDescription() = { product: Product ->
-                    product.name.contains(
-                        text,
-                        ignoreCase = true,
-                    ) ||
-                            product.description?.contains(
-                                text,
-                                ignoreCase = true,
-                            ) ?: false
-                }
-
-                val searchedProducts = remember(text,products){
-                    if (text.isNotBlank()) {
-                        //feito o merge dos filtros realizados nos dados
-                        sampleProducts.filter(containsInNameOrDescription()) + products.filter(
-                            containsInNameOrDescription()
-                        )
-                    } else emptyList()
-                }
-
-                //passagem via parametro para reagir a mudança realizada
-                val state = remember(sections,text) {//state vai reagir a mudanças das variaveis sections e text
-                    HomeScreenUiState(
-                        sections = sections,
-                        searchedProducts = searchedProducts,
-                        searchText = text,
-                        onSearchChange = {
-                                text = it
-                        }
-                    )
-                }
-                HomeScreen(state = state)
+                HomeScreen(products = products)
             }
         }
     }
