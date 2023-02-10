@@ -40,8 +40,7 @@ class ProductFormActivity : ComponentActivity() {
         setContent {
             AluveryTheme {
                 Surface {
-                    ProductFormScreen(onSaveClick = { product ->
-                        dao.save(product)
+                    ProductFormScreen(dao = dao , onSaveFinish = {
                         finish()
                     })
                 }
@@ -51,11 +50,93 @@ class ProductFormActivity : ComponentActivity() {
 
 }
 
+class ProductFormScreenUiState(
+    val url: String = "",
+    val name: String = "",
+    val price: String = "",
+    val description: String = "",
+    val onSaveClick: (Product) -> Unit = {  _ -> },
+    val onUrlChanged: (String) -> Unit = {},
+    val onTextChanged: (String) -> Unit = {},
+    val onPriceChanged: (String) -> Unit = {},
+    val onDescriptionChanged: (String) -> Unit = {},
+)
+
+@Composable
+fun ProductFormScreen(
+    dao: ProductDao,
+    onSaveFinish: () -> Unit = {}
+) {
+
+    var url by remember {
+        mutableStateOf("")
+    }
+
+    var name by remember {
+        mutableStateOf("")
+    }
+
+    var price by remember {
+        mutableStateOf("")
+    }
+
+    var description by remember {
+        mutableStateOf("")
+    }
+
+    val formatter = remember {
+        DecimalFormat("#.##")
+    }
+
+    val onUrlChanged: (String) -> Unit = { value -> url = value }
+
+    val onTextChanged: (String) -> Unit = { name = it }
+
+    val onPriceChanged: (String) -> Unit = {
+        try {
+            price = formatter.format(BigDecimal(it))
+        } catch (e: IllegalArgumentException) {
+            if (it.isEmpty()) {
+                price = it
+            }
+        }
+    }
+
+    val onDescriptionChanged: (String) -> Unit = { description = it }
+
+    val onSaveClick: (Product) -> Unit = { product ->
+        dao.save(product)
+        onSaveFinish()
+    }
+    
+
+    val state = remember(
+        url,
+        name,
+        price,
+        description,
+    ) {
+        ProductFormScreenUiState(
+            url,
+            name,
+            price,
+            description,
+            onSaveClick,
+            onUrlChanged,
+            onTextChanged,
+            onPriceChanged,
+            onDescriptionChanged,
+        )
+    }
+    ProductFormScreen(state = state)
+
+}
+
 
 @Composable
 fun ProductFormScreen(
     modifier: Modifier = Modifier,
-    onSaveClick: (Product) -> Unit
+    state: ProductFormScreenUiState = ProductFormScreenUiState(),
 ) {
 
     Column(
@@ -66,16 +147,18 @@ fun ProductFormScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
+        val url = state.url
+        val name = state.name
+        val price = state.price
+        val description = state.description
+        val onSaveClick = state.onSaveClick
+
         Spacer(modifier = modifier)
         Text(
             text = "Criando o produto",
             modifier = modifier.fillMaxWidth(),
             fontSize = 28.sp,
         )
-
-        var url by remember {
-            mutableStateOf("")
-        }
 
         if (url.isNotBlank()) {
             AsyncImage(
@@ -89,9 +172,10 @@ fun ProductFormScreen(
                 error = painterResource(id = R.drawable.placeholder)
             )
         }
+
         TextField(
             value = url,
-            onValueChange = { value -> url = value },
+            onValueChange = state.onUrlChanged,
             modifier.fillMaxWidth(),
             label = {
                 Text(text = "Url da Imagem")
@@ -102,15 +186,12 @@ fun ProductFormScreen(
             )
         )
 
-        var name by remember {
-            mutableStateOf("")
-        }
-
-        TextField(value = name, onValueChange = {
-            name = it
-        }, modifier.fillMaxWidth(), label = {
-            Text(text = "Nome")
-        },
+        TextField(
+            value = name,
+            onValueChange = state.onTextChanged,
+            modifier.fillMaxWidth(), label = {
+                Text(text = "Nome")
+            },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Next,
@@ -118,25 +199,10 @@ fun ProductFormScreen(
             )
         )
 
-        var price by remember {
-            mutableStateOf("")
-        }
-
-        val formatter = remember {
-            DecimalFormat("#.##")
-        }
-
         TextField(
             value = price,
-            onValueChange = {
-                try {
-                    price = formatter.format(BigDecimal(it))
-                } catch (e: IllegalArgumentException) {
-                    if (it.isEmpty()) {
-                        price = it
-                    }
-                }
-            }, modifier.fillMaxWidth(), label = {
+            onValueChange = state.onPriceChanged,
+            modifier.fillMaxWidth(), label = {
                 Text(text = "Preço")
             }, keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal,
@@ -144,16 +210,9 @@ fun ProductFormScreen(
             )
         )
 
-
-        var description by remember {
-            mutableStateOf("")
-        }
-
         TextField(
             value = description,
-            onValueChange = {
-                description = it
-            },
+            onValueChange = state.onDescriptionChanged,
             modifier
                 .fillMaxWidth()
                 .heightIn(min = 100.dp),
@@ -168,7 +227,7 @@ fun ProductFormScreen(
 
         Button(onClick = {
             val convertedPrice = try {
-                BigDecimal(price)
+                BigDecimal(state.price)
             } catch (e: NumberFormatException) {
                 BigDecimal(0)
             }
@@ -192,7 +251,7 @@ fun ProductFormScreen(
 fun ProductFormScreenPreview() {
     AluveryTheme {
         Surface {
-            ProductFormScreen(onSaveClick = { })
+            ProductFormScreen()
         }
     }
 }
