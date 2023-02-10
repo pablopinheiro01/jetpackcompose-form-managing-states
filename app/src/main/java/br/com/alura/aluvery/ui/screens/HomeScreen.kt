@@ -19,25 +19,33 @@ import br.com.alura.aluvery.ui.theme.AluveryTheme
 
 class HomeScreenUiState(
     val sections: Map<String, List<Product>> = emptyMap(),
+    private val products: List<Product> = emptyList(),
     searchText: String = "",
 ) {
 
     var text by mutableStateOf(searchText)
-    private set
+        private set
 
-    val searchedProducts get() =
-        if (text.isNotBlank()) {
-            sampleProducts.filter { product ->
-                product.name.contains(
+    val searchedProducts
+        get() =
+            if (text.isNotBlank()) {
+                //feito o merge dos filtros realizados nos dados
+                sampleProducts.filter(containsInNameOrDescription()) + products.filter(
+                    containsInNameOrDescription()
+                )
+            } else emptyList()
+
+    //logica de verificacao dos dados buscados
+    private fun containsInNameOrDescription() = { product: Product ->
+        product.name.contains(
+            text,
+            ignoreCase = true,
+        ) ||
+                product.description?.contains(
                     text,
                     ignoreCase = true,
-                ) ||
-                        product.description?.contains(
-                            text,
-                            ignoreCase = true,
-                        ) ?: false
-            }
-        } else emptyList()
+                ) ?: false
+    }
 
     fun isShowSection() = text.isBlank()
 
@@ -54,7 +62,7 @@ fun HomeScreen(
     Column {
         val sections = state.sections
         val text = state.text
-        val searchedProducts = remember(text){ state.searchedProducts }
+        val searchedProducts = remember(text) { state.searchedProducts }
 
         SearchTextField(
             searchText = text,

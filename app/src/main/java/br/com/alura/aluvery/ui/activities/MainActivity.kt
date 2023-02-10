@@ -41,13 +41,20 @@ class MainActivity : ComponentActivity() {
                     )
                 },
             ) {
+                val products = dao.products()
                 val sections = mapOf(
-                    "Todos produtos" to dao.products(),
+                    "Todos produtos" to products,
                     "Promocoes" to sampleDrinks + sampleCandies,
                     "Doces" to sampleCandies,
                     "Bebidas" to sampleDrinks
                 )
-                val state = remember(sections) { HomeScreenUiState(sections = sections) }
+
+                val state = remember(sections) {
+                    HomeScreenUiState(
+                        sections = sections,
+                        products = products,
+                    )
+                }
                 HomeScreen(state = state)
             }
         }
@@ -78,7 +85,7 @@ fun App(
 @Preview
 @Composable
 fun AppPreview() {
-    App(){
+    App() {
         HomeScreen(HomeScreenUiState(sampleSections))
     }
 }
